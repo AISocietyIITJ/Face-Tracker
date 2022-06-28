@@ -1,0 +1,6 @@
+{
+    "DATA_DIR": "data",
+    "MODEL_DIR": "model",
+    "model_type": "siamese",
+    "IMAGE_DIR": "data_dir_1"
+}

@@ -1,0 +1,15 @@
+{
+    "HEIGHT":128,
+    "WIDTH":128,
+    "Image_Depth":3,
+    "lr":0.0001,
+    "epochs":100,
+    "batch_size":32,
+    "base_architecture":"efficientnetb0",
+    "model_type":"siamese",
+    "num_classes":10,
+    "siamese_loss":"triplet_batch_hard",
+    "optimizer":"adam",
+    "embedding_size":512
+
+}
