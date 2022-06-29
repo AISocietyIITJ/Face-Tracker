@@ -13,24 +13,27 @@ DIR = 'data'
 IMAGE_DIR = 'data_dir_1'
 NAME = str(input("Enter Person's name: "))
 IMAGE_NUM = int(input("Enter number of images: "))
-NUM = open(f'{DIR}/class_num').read()
+NUM = open(f'{DIR}/class_num', encoding="utf-8").read()
 ENCODINGS = f'{DIR}/encodings.json'
 
-with open(DIR+'/'+"EVENT.json") as event:
-                    EVENT = json.load(event)
-                    EVENT["EVENT"] = False
-                    json.dump(EVENT, open(DIR+'/'+"EVENT.json", 'w'))
+with open(DIR+'/'+"EVENT.json", encoding="utf-8") as event_begin:
+    EVENT = json.load(event_begin)
+    EVENT["EVENT"] = False
+    json.dump(EVENT, open(DIR+'/'+"EVENT.json", 'w',encoding="utf-8"))
 
 def run_camera():
+    """
+    Run the camera
+    """
     print("[INFO] starting video stream...")
-    global DIR
-    global IMAGE_DIR
-    global NAME
-    global IMAGE_NUM
-    global NUM
-    global ENCODINGS
+    # global DIR
+    # global IMAGE_DIR
+    # global NAME
+    # global IMAGE_NUM
+    # global NUM
+    # global ENCODINGS
 
-    with open(ENCODINGS) as encodings:
+    with open(ENCODINGS, encoding="utf-8") as encodings:
         encoded = json.load(encodings)
     encoded[int(NUM)] = NAME
 
@@ -50,10 +53,10 @@ def run_camera():
             global EVENT
 
             if not EVENT["EVENT"]:
-                with open(DIR+'/'+"EVENT.json") as event:
-                    EVENT = json.load(event)
+                with open(DIR+'/'+"EVENT.json", encoding="utf-8") as event_check:
+                    EVENT = json.load(event_check)
 
-            (captured, frame) = camera.read()
+            (_, frame) = camera.read()
 
             frame = imutils.resize(frame, width = 640, height = 800)
             frame = cv2.flip(frame,1)
@@ -67,13 +70,15 @@ def run_camera():
             cv2.imshow("video feed", clone)
             cv2.imshow("ROI", blur)
 
-            keypressed = cv2.waitKey(1)
+            _ = cv2.waitKey(1)
 
             if EVENT["EVENT"]:
 
                 if num_frames%50 == 0:
-                    cv2.imwrite(filename=f"{DIR}/{IMAGE_DIR}/{NUM}/image"+str(int(num_frames/50))+".jpg",img = blur )
-                    print("image_{}.jpg saved".format(int(num_frames/50)))
+                    cv2.imwrite(
+                        filename=f"{DIR}/{IMAGE_DIR}/{NUM}/image"+
+                        str(int(num_frames/50))+".jpg",img = blur )
+                    print(f"image_{int(num_frames/50)}.jpg saved")
 
                 if num_frames == 50*IMAGE_NUM+1:
                     camera.release()
@@ -84,7 +89,7 @@ def run_camera():
     except KeyboardInterrupt:
         print("\n\n[INFO] exiting...")
         shutil.rmtree(DIR + '/' + IMAGE_DIR + '/' + NUM)
-        open(f"{DIR}/class_num", 'w').write(str(int(NUM)))
+        open(f"{DIR}/class_num", 'w', encoding="utf-8").write(str(int(NUM)))
         sys.exit()
     except:
         print("Error")
@@ -93,10 +98,13 @@ def run_camera():
         shutil.rmtree(DIR + '/' + IMAGE_DIR + '/' + NUM)
         raise
 
-    json.dump(encoded, open(ENCODINGS, 'w'))
-    open(f"{DIR}/class_num", 'w').write(str(int(NUM)+1))
+    json.dump(encoded, open(ENCODINGS, 'w', encoding="utf-8"))
+    open(f"{DIR}/class_num", 'w', encoding="utf-8").write(str(int(NUM)+1))
 
 def wait_response():
+    """
+    Wait for the user to press a key
+    """
     global EVENT
     global NUM
     while not EVENT["EVENT"]:
@@ -106,12 +114,12 @@ def wait_response():
             time.sleep(5)
             EVENT["EVENT"] = True
             print("[INFO] starting...")
-            json.dump(EVENT, open(DIR+'/'+"EVENT.json", 'w'))
+            json.dump(EVENT, open(DIR+'/'+"EVENT.json", 'w', encoding="utf-8"))
             break
         except KeyboardInterrupt:
             print("\n\n[INFO] exiting...")
             shutil.rmtree(DIR + '/' + IMAGE_DIR + '/' + NUM)
-            open(f"{DIR}/class_num", 'w').write(str(int(NUM)))
+            open(f"{DIR}/class_num", 'w', encoding="utf-8").write(str(int(NUM)))
             sys.exit()
 
 if __name__ == "__main__":

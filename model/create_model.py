@@ -1,49 +1,55 @@
-from ast import In
-import os, sys
-sys.path.append(os.getcwd())
+"""
+Dataset creation tools
+"""
 
-from assets.utils import applications, Model
-from assets.utils import K, tf, tfa
-from assets.utils import Flatten, Dense, Dropout, Lambda, Input
+import sys
+import tensorflow as tf
+import tensorflow_addons as tfa
+import keras.backend as K
+import tennsorflow.keras.applications as applications
 
-
-from model.losses_and_metrics import euclideanDistance, dist_output_shape, cosine_distance, contrastive_loss
+sys.path.append("../")
+from tensorflow.keras.layers import Flatten, Dense, Dropout, Lambda, Input, Model
+from model.losses_and_metrics import euclidean_distance, dist_output_shape, cosine_distance, contrastive_loss
 
 def get_base(base_architecture, config, Input, isTrainable=True):
+    """
+    Get the base architecture
+    """
 
     if base_architecture == 'VGG16':
         base_model = applications.vgg16.VGG16(
-            weights='imagenet', 
-            include_top=False, 
+            weights='imagenet',
+            include_top=False,
             input_shape=(config["Height"], config["WIDTH"], 3),
-            )
-    
+        )
+
     elif base_architecture == 'VGG19':
         base_model = applications.vgg19.VGG19(
-            weights='imagenet', 
-            include_top=False, 
-            input_shape=(config["Height"], 
+            weights='imagenet',
+            include_top=False,
+            input_shape=(config["Height"],
             config["WIDTH"], 3),
             )
-    
+
     elif base_architecture == 'ResNet50':
         base_model = applications.resnet50.ResNet50(
-            weights='imagenet', 
-            include_top=False, 
+            weights='imagenet',
+            include_top=False,
             input_shape=(config["HEIGHT"], config["WIDTH"], 3),
             )
-    
+
     elif base_architecture == 'InceptionV3':
         base_model = applications.inception_resnet_v2.InceptionResNetV2(
-            weights='imagenet', 
-            include_top=False, 
+            weights='imagenet',
+            include_top=False,
             input_shape=(config["HEIGHT"], config["WIDTH"], 3),
             )
-    
+
     elif base_architecture == 'efficientnetb0':
         base_model = applications.efficientnet.EfficientNetB0(
-            weights='imagenet', 
-            include_top=False, 
+            weights='imagenet',
+            include_top=False,
             input_shape=(config["HEIGHT"], config["WIDTH"], 3),
             )
 
@@ -53,7 +59,11 @@ def get_base(base_architecture, config, Input, isTrainable=True):
     out = base_model(Input)
     return out
 
+
 def get_siamese_loss(loss_type):
+    """
+    Get the loss function for the siamese network
+    """
 
     if loss_type == 'contrastive':
         loss = contrastive_loss
@@ -68,10 +78,13 @@ def get_siamese_loss(loss_type):
 
 
 def get_classifier_loss(loss_type):
+    """
+    Get the loss function for the classifier network
+    """
 
     if loss_type == 'categorical_crossentropy':
         loss = tf.keras.losses.CategoricalCrossentropy()
-    
+
     elif loss_type == 'sparse_categorical_crossentropy':
         loss = tf.keras.losses.SparseCategoricalCrossentropy()
 
@@ -94,13 +107,14 @@ def get_classifier_loss(loss_type):
 
 
 def get_model(config):
-
+    """
+    Get the siamese network
+    """
     base_architecture = config["base_architecture"]
     model_type = config["model_type"]
-            
+
     INPUT = Input(shape=(config["HEIGHT"], config["WIDTH"], 3))
     base = get_base(base_architecture, config, INPUT)
-    num_classes = config["num_classes"]
 
     if model_type == 'siamese':
         layer = Flatten()(base)
@@ -118,11 +132,14 @@ def get_model(config):
         embedding_1 = embedding(Input_1)
         embedding_2 = embedding(Input_2)
 
-        distance = Lambda(euclideanDistance, output_shape=dist_output_shape)([embedding_1, embedding_2])
+        distance = Lambda(
+            euclidean_distance,
+            output_shape=dist_output_shape)([embedding_1, embedding_2])
+
         model = Model([Input_1, Input_2], distance)
 
         loss = get_siamese_loss(config["siamese_loss"])
-        
+
 
     model.compile(loss=loss, optimizer=config["optimizer"], metrics=['accuracy'])
 
