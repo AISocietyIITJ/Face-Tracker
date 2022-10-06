@@ -1,149 +1,81 @@
 """
-Dataset creation tools
+Creating base model
 """
-
 import sys
-import tensorflow as tf
 import tensorflow_addons as tfa
-import keras.backend as K
-import tennsorflow.keras.applications as applications
-
+import tensorflow.keras.backend as K
+from tensorflow.keras.layers import Input, Dense, Flatten, Lambda, Dropout
+from tensorflow.keras.models import Model, Sequential
 sys.path.append("../")
-from tensorflow.keras.layers import Flatten, Dense, Dropout, Lambda, Input, Model
-from model.losses_and_metrics import euclidean_distance, dist_output_shape, cosine_distance, contrastive_loss
+from model.helpers import eucledian_distance, eucledian_output_shape
 
-def get_base(base_architecture, config, Input, isTrainable=True):
-    """
-    Get the base architecture
-    """
-
-    if base_architecture == 'VGG16':
-        base_model = applications.vgg16.VGG16(
-            weights='imagenet',
-            include_top=False,
-            input_shape=(config["Height"], config["WIDTH"], 3),
-        )
-
-    elif base_architecture == 'VGG19':
-        base_model = applications.vgg19.VGG19(
-            weights='imagenet',
-            include_top=False,
-            input_shape=(config["Height"],
-            config["WIDTH"], 3),
-            )
-
-    elif base_architecture == 'ResNet50':
-        base_model = applications.resnet50.ResNet50(
-            weights='imagenet',
-            include_top=False,
-            input_shape=(config["HEIGHT"], config["WIDTH"], 3),
-            )
-
-    elif base_architecture == 'InceptionV3':
-        base_model = applications.inception_resnet_v2.InceptionResNetV2(
-            weights='imagenet',
-            include_top=False,
-            input_shape=(config["HEIGHT"], config["WIDTH"], 3),
-            )
-
-    elif base_architecture == 'efficientnetb0':
-        base_model = applications.efficientnet.EfficientNetB0(
-            weights='imagenet',
-            include_top=False,
-            input_shape=(config["HEIGHT"], config["WIDTH"], 3),
-            )
-
-    for layer in base_model.layers:
-        layer.trainable = isTrainable
-
-    out = base_model(Input)
-    return out
 
 
 def get_siamese_loss(loss_type):
     """
-    Get the loss function for the siamese network
+    Loss function for siamese network
     """
-
-    if loss_type == 'contrastive':
-        loss = contrastive_loss
-
-    elif loss_type == 'triplet_batch_hard':
-        loss = tfa.losses.TripletHardLoss()
-
-    elif loss_type == 'batch_semi_hard':
-        loss = tfa.losses.TripletSemiHardLoss()
-
+    if loss_type == 'contrastive_loss':
+        loss = tfa.losses.ContrastiveLoss(margin=1)
+    elif loss_type == 'triplet_hard_loss':
+        loss = tfa.losses.TripletHardLoss(margin=1)
+    elif loss_type == 'triplet_semihard_loss':
+        loss = tfa.losses.TripletSemiHardLoss(margin=1)
     return loss
-
 
 def get_classifier_loss(loss_type):
     """
-    Get the loss function for the classifier network
+    Loss function for classifier network
     """
-
     if loss_type == 'categorical_crossentropy':
-        loss = tf.keras.losses.CategoricalCrossentropy()
-
-    elif loss_type == 'sparse_categorical_crossentropy':
-        loss = tf.keras.losses.SparseCategoricalCrossentropy()
-
-    elif loss_type == 'binary_crossentropy':
-        loss = tf.keras.losses.BinaryCrossentropy()
-
-    elif loss_type == 'categorical_hinge':
-        loss = tf.keras.losses.CategoricalHinge()
-
-    elif loss_type == 'hinge':
-        loss = tf.keras.losses.Hinge()
-
-    elif loss_type == 'mean_absolute_percentage_error':
-        loss = tf.keras.losses.MeanAbsolutePercentageError()
-
-    elif loss_type == 'mean_squared_logarithmic_error':
-        loss = tf.keras.losses.MeanSquaredLogarithmicError()
-
+        loss = 'categorical_crossentropy'
+    elif loss_type == 'mse':
+        loss = 'mse'
     return loss
 
 
-def get_model(config):
+def get_model(model_type, num_classes, config):
     """
-    Get the siamese network
+    This function is used to create the model.
     """
-    base_architecture = config["base_architecture"]
-    model_type = config["model_type"]
+    input_tensor = Input(shape=(config["HEIGHT"], config["WIDTH"], 3))
 
-    INPUT = Input(shape=(config["HEIGHT"], config["WIDTH"], 3))
-    base = get_base(base_architecture, config, INPUT)
+    base = Dense(64, input_shape = (63,), activation='relu')(input_tensor)
+    base = Dense(64, activation='relu')(base)
+    base = Dense(32, activation='relu')(base)
+    base = Dense(16, activation='relu')(base)
+
+
+    # Defining the model tail
 
     if model_type == 'siamese':
-        layer = Flatten()(base)
-        layer = Dense(1024, activation='relu')(layer)
+        layer = Dense(16, activation='relu')(base)
         layer = Dropout(0.2)(layer)
-        # layer = Dense(512, activation='relu')(layer)
-        # layer = Dropout(0.2)(layer)
-        layer = Dense(config["embedding_size"])(layer)
+        layer = Dense(8)(layer)
         out = Lambda(lambda  x: K.l2_normalize(x,axis=1))(layer)
-        embedding = Model(INPUT, out)
+        embedding = Model(input_tensor, out)
 
-        Input_1 = Input(shape=(config["HEIGHT"], config["WIDTH"], 3))
-        Input_2 = Input(shape=(config["HEIGHT"], config["WIDTH"], 3))
+        input_1 = Input(shape=(63,))
+        input_2 = Input(shape=(63,))
 
-        embedding_1 = embedding(Input_1)
-        embedding_2 = embedding(Input_2)
+        embedding_1 = embedding(input_1)
+        embedding_2 = embedding(input_2)
 
         distance = Lambda(
-            euclidean_distance,
-            output_shape=dist_output_shape)([embedding_1, embedding_2])
+            eucledian_distance,
+            output_shape=eucledian_output_shape)(embedding_1, embedding_2)
 
-        model = Model([Input_1, Input_2], distance)
+        model = Model([input_1, input_2], distance)
 
-        loss = get_siamese_loss(config["siamese_loss"])
+        loss = get_siamese_loss(config["loss"])
 
+    elif model_type == 'classifier':
+        layer = Dense(8, activation='relu')(base)
+        layer = Dense(num_classes, activation='softmax')(layer)
+        loss = config["loss"]
+        model = Model(input_tensor, layer)
 
-    model.compile(loss=loss, optimizer=config["optimizer"], metrics=['accuracy'])
-
+    model.compile(loss=loss, optimizer='adam', metrics=['accuracy'])
     return model
-
 
 # EOL
