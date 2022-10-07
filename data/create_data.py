@@ -1,7 +1,6 @@
 """
 creating dataset
 """
-from curses import has_colors
 import os
 import sys
 import json
@@ -55,8 +54,8 @@ def run_camera():
                 global EVENT
 
                 if not EVENT["EVENT"]:
-                    with open(DIR+'/'+"EVENT.json", encoding="utf-8") as new_event:
-                        EVENT = json.load(new_event)
+                    with open(DIR+'/'+"EVENT.json", encoding="utf-8") as ne_wevent:
+                        EVENT = json.load(ne_wevent)
 
                 success, image = camera.read()
                 h, w, _ = image.shape
@@ -84,12 +83,12 @@ def run_camera():
                     for face_keypoints in results.detections:
                         x_min = min(x_min, face_keypoints.location_data.relative_bounding_box.xmin)
                         y_min = min(y_min, face_keypoints.location_data.relative_bounding_box.ymin)
-                        h_ = max(x_max, face_keypoints.location_data.relative_bounding_box.height)
-                        w_ = max(y_max, face_keypoints.location_data.relative_bounding_box.width)
+                        _h = max(x_max, face_keypoints.location_data.relative_bounding_box.height)
+                        _w = max(y_max, face_keypoints.location_data.relative_bounding_box.width)
                         x_1 = int((x_min)*img_w)
-                        x_2 = int((x_min + w_)*img_w)
+                        x_2 = int((x_min + _w)*img_w)
                         y_1 = int((y_min)*img_h)
-                        y_2 = int((y_max + h_)*img_h)
+                        y_2 = int((y_max + _h)*img_h)
 
                     cv2.rectangle(image,(x_1,y_1),(x_2,y_2),(0, 255, 0), 2)
 
