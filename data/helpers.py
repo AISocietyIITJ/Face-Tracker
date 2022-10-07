@@ -1,25 +1,22 @@
 """
-Module for Creating Paired data
+Helper Functions
 """
-import sys
 import random
 import numpy as np
 import tensorflow as tf
-sys.path.append("../")
 
-DIR = 'data'
-
-class Pair(object):
+# pairs
+class Pair():
     """
-    A class for creating paired data for training:
+    def make_pairs(self, num_classes):
     """
-    def __init__(self,data):
+    def __init__(self, data):
         _x, _y = data
         self._x, self._y = np.array(_x), np.array(_y)
 
     def decode_img(self, img):
         """
-        Decode the image from the given path.
+        Decode the image from the path.
         """
         img = tf.image.decode_jpeg(img, channels=3)
         img = tf.image.convert_image_dtype(img, tf.float32)
@@ -27,18 +24,18 @@ class Pair(object):
 
     def get_pairs(self):
         """
-        Get the pairs of images.
+        Get the pairs of images and labels.
         """
-        _x, _y = self._x, self._y
+        _, _y = self._x, self._y
         pairs, labels = self.make_pairs(len(np.unique(_y)))
-        element_1= tf.data.Dataset.from_tensor_slices(pairs[:, 0])
+        element_1 = tf.data.Dataset.from_tensor_slices(pairs[:, 0])
         element_2 = tf.data.Dataset.from_tensor_slices(pairs[:, 1])
         labels = tf.data.Dataset.from_tensor_slices(labels)
         return (element_1, element_2, labels)
 
     def make_pairs(self, num_classes):
         """
-        Make the pairs of images.
+        Make pairs of images and labels.
         """
         _x, _y = self._x, self._y
         digit_indices = [np.where(_y == i)[0] for i in range(num_classes)]
@@ -46,6 +43,7 @@ class Pair(object):
         pairs = list()
         labels = list()
 
+        # Positive and Negative pairs
         for idx_1,_ in enumerate(_x):
             x_1 = _x[idx_1]
             label1 = _y[idx_1]
@@ -64,46 +62,7 @@ class Pair(object):
 
             labels += list([0])
             pairs += [[x_1, x_2]]
+
         return np.array(pairs), np.array(labels)
 
-class Augment:
-    """
-    Augment the image.
-    """
-
-    def rotate_img(self,img):
-        """
-        Rotate the image.
-        """
-        img = tf.keras.layers.RandomRotation(0.2)(img)
-        return img
-
-    def zoom_img(self,img):
-        """
-        Zoom the image.
-        """
-        img = tf.keras.layers.RandomZoom(0.5)(img)
-        return img
-
-    def shift_img(self,img):
-        """
-        Shift the image.
-        """
-        img = tf.keras.layers.RandomShift(0.5)(img)
-        return img
-
-    def flip_img(self,img):
-        """
-        Flip the image.
-        """
-        img = tf.keras.layers.RandomFlip()(img)
-        return img
-
-    def shear_img(self,img):
-        """
-        Shear the image.
-        """
-        img = tf.keras.preprocessing.image.random_shear(img, 0.2)
-        return img
-
-# EOL
+# EOF

@@ -1,78 +1,118 @@
 """
-Training the model
+Main training function
 """
-import sys
-import json
 from datetime import datetime
+import json
 import tensorflow as tf
-
-sys.path.append("../")
-
 from model.create_model import get_model
-from data.dataset_generator import generate_data_for_siamese
+from data.dataset_generator import generate_data_for_classifier, generate_data_for_siamese
+from tensorflow.keras.callbacks import CSVLogger
 
-
-CONFIG_FILE = 'configurations.json'
-
-with open(CONFIG_FILE, encoding="utf-8") as load_value:
+with open('configurations.json', encoding='utf-8') as load_value:
     configurations = json.load(load_value)
 
-print(configurations)
-with open(configurations["MODEL_DIR"] +
-"/" + "model_specifications.json", encoding="utf-8") as specs:
+with open(
+    configurations["MODEL_DIR"] + "/" + "model_specifications.json", encoding='utf-8') as specs:
     model_config = json.load(specs)
 
 def main(_args):
     """
-    Main Function
+    Main function for training the model.
     """
 
     # Loading the Data
-    data = generate_data_for_siamese(
-        configurations["data_dir"],
-        configurations["IMAGE_DIR"]
+    if model_config["model_type"].lower() == "siamese":
+        data = generate_data_for_siamese(
+            configurations["IMAGE_DIR"],
+            is_augmented=False,
+            batch_size=configurations["BATCH_SIZE"]
         )
 
+    elif model_config["model_type"].lower() == "classifier":
+        data = generate_data_for_classifier(
+            configurations["IMAGE_DIR"],
+            is_augmented=False,
+            batch_size=configurations["BATCH_SIZE"]
+        )
 
-    # Loading the model
+    elif model_config["model_type"].lower() == "ran_classifier":
+        data = generate_data_for_classifier(
+            configurations["IMAGE_DIR"],
+            is_augmented=False,
+            batch_size=configurations["BATCH_SIZE"]
+        )
 
-    weights_dir = "model/siamese/weights"
-    model = get_model(model_config)
+    elif model_config["model_type"].lower() == "save":
+        data = generate_data_for_classifier(
+            configurations["IMAGE_DIR"],
+            is_augmented=False,
+            batch_size=configurations["BATCH_SIZE"],
+        )
+        return
 
+    gpus = tf.config.list_physical_devices('GPU')
+    if gpus:
+        for gpu in gpus:
+            try:
+                tf.config.set_logical_device_configuration(
+                    gpu,
+                    [tf.config.LogicalDeviceConfiguration(
+                        memory_limit=configurations["GPU_MEMORY_LIMIT"])]
+                        ) # Allocating 37 GB of memory out of 40GB available
 
-    checkpoint = tf.keras.callbacks.ModelCheckpoint(
-        weights_dir + "/" + model_config["base_architecture"] +
-        "/siam-{epoch}-"+str(model_config["lr"])+"-"+str("net")+"_{loss:.4f}.h5",
-        monitor="loss",
-        verbose=1,
-        save_best_only=True,
-        save_weights_only=True,
-        mode="min",
-    )
-    # stop = tf.keras.callbacks.EarlyStopping(
-    #     monitor="loss",
-    #     patience=configurations["TRAIN_PATIENC"],
-    #     mode="min")
-    # reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
-    #     monitor="loss",
-    #     factor=0.6,
-    #     patience=5,
-    #     min_lr=1e-6,
-    #     verbose=1,
-    #     mode="min")
+                logical_gpus = tf.config.list_logical_devices('GPU')
+                print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+            except RuntimeError as _e:
+                # Virtual devices must be set before GPUs have been initialized
+                print(_e)
 
-    # Defining the Keras TensorBoard callback.
-    logdir = "logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
+    strategy = tf.distribute.MirroredStrategy()
 
+    with strategy.scope():
 
-    model.fit(
-        data,
-        epochs=model_config["epochs"],
-        callbacks=[tensorboard_callback, checkpoint],
-        verbose=1
-    )
+        # Loading the model
+        model = get_model(model_config)
 
+        # saving the history of the model
+        csv_log = CSVLogger(
+            "../history/"+
+            str(model_config["model_type"])+
+            str(model_config["base_architecture"])+
+            str(model_config["siamese_loss"])+
+            str(model_config["optimizer"])+
+            "-training.log",
+            separator=",",
+            append=True
+            )
+
+        # saving model checkpoints
+        weights_dir = "../weights"
+        checkpoint = tf.keras.callbacks.ModelCheckpoint(
+            weights_dir +
+            "/"+
+            str(model_config["model_type"])+"-{epoch}-"+str(model_config["base_architecture"])+
+            str(model_config["optimizer"])+
+            str(model_config["lr"])+
+            str(model_config["siamese_loss"])+"cosine"+
+            str(configurations["BATCH_SIZE"])+
+            "-"+str("net")+"_{loss:.4f}.h5",
+            monitor="loss",
+            verbose=1,
+            save_best_only=True,
+            save_weights_only=True,
+            mode="min",
+        )
+
+        # Define the Keras TensorBoard callback.
+        logdir = "../logs/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
+        model.optimizer.momentum = 0.9
+        model.fit(
+            data,
+            epochs=model_config["epochs"],
+            callbacks=[tensorboard_callback, checkpoint, csv_log],
+            verbose=1
+        )
 
 if __name__ == "__main__":
     try:
@@ -80,6 +120,5 @@ if __name__ == "__main__":
 
     except SystemExit:
         pass
-
 
 # EOL
