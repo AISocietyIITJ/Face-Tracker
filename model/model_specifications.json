@@ -1,14 +1,25 @@
 {
-    "HEIGHT":128,
-    "WIDTH":128,
-    "DEPTH":3,
-    "base_architecture":"mobilenet",
-    "model_type":"classifier",
-    "learning_rate":0.001,
+    "HEIGHT":224,
+    "WIDTH":224,
+    "Image_Depth":3,
+    "lr":0.01,
     "epochs":100,
-    "batch_size":64,
-    "loss":"categorical_crossentropy",
-    "optimizer":"rmsprop",
-    "embedding_size":128
+    "base_architecture":"efficientnetb5",    
+    "model_type":"classifier",   
+    "num_classes":21,
+    "loss":"weighted_binary_crossentropy",    
+    "optimizer":"adam",
+    "embedding_size":128,
+    "batch_size":32,
+
+
+    "__loss_options__": {
+        "classifier":["categorical_crossentropy", "sparse_categorical_crossentropy", "binary_crossentropy", "categorical_hinge", "weighted_binary_crossentropy"],
+        "ran_classifier": "same as classifier",
+        "siames":["triplet_batch_hard", "batch_semi_hard", "contrastive"]
+    },
+    "__optimizer_options__": ["adam", "rmsprop"],
+    "__model_type_options__": ["classifier","siamese","ran_classifier", "save"],
+    "__base_architecture_options__": ["vgg16","vgg19","resnet50","inceptionv3","efficientnetb5"]
 
 }
