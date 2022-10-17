@@ -6,6 +6,7 @@ import json
 import sys
 import random
 import tensorflow as tf
+from PIL import Image
 sys.path.append('../')
 from data.helpers import Pair
 
@@ -24,7 +25,21 @@ def generate_data_for_classifier(image_dir, is_augmented=False, batch_size=128):
     labels = []
 
     # Map paths to images
+    for foldername in os.listdir(image_dir + '/'):
+        for filename in os.listdir(image_dir + '/' + foldername + '/'):
+            if filename.endswith('.jpg'):
+                try:
+                    img = Image.open(image_dir + '/' + foldername + '/' + filename)
+                    img.verify()
 
+                    # image path
+                    images.append(image_dir + '/' + foldername + '/' + filename)
+
+                    # corresponding label to the image path indicating the folder name
+                    labels.append(foldername)
+                    
+                except (IOError, SyntaxError) as e:
+                    pass
 
     def decode_img(img):
         img = tf.io.read_file(img)
@@ -60,7 +75,21 @@ def generate_data_for_siamese(image_dir, is_augmented=False, batch_size=128):
     labels = []
 
     # Map paths to images
+    for foldername in os.listdir(image_dir + '/'):
+        for filename in os.listdir(image_dir + '/' + foldername + '/'):
+            if filename.endswith('.jpg'):
+                try:
+                    img = Image.open(image_dir + '/' + foldername + '/' + filename)
+                    img.verify()
 
+                    # image path
+                    images.append(image_dir + '/' + foldername + '/' + filename)
+
+                    # corresponding label to the image path indicating the folder name
+                    labels.append(foldername)
+                    
+                except (IOError, SyntaxError) as e:
+                    pass
 
     def decode_img(img):
         img = tf.io.read_file(img)
