@@ -23,8 +23,8 @@ IMAGE_NUM = int(input("Enter number of images: "))
 NUM = open(f'{DIR}/class_num', encoding="utf-8").read()
 ENCODINGS = f'{DIR}/encodings.json'
 
-with open(DIR+'/'+"EVENT.json", encoding="utf-8") as event:
-    EVENT = json.load(event)
+with open(DIR+'/'+"EVENT.json", encoding="utf-8") as event_file:
+    EVENT = json.load(event_file)
     EVENT["EVENT"] = False
     json.dump(EVENT, open(DIR+'/'+"EVENT.json", 'w', encoding="utf-8"))
 
