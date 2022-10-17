@@ -54,7 +54,7 @@ def run_camera():
 
                 global EVENT
 
-                if not EVENT["EVENT"]:
+                while not EVENT["EVENT"]:
                     with open(DIR+'/'+"EVENT.json", encoding="utf-8") as new_event:
                         EVENT = json.load(new_event)
 
