@@ -8,6 +8,7 @@ import random
 import tensorflow as tf
 sys.path.append('../')
 from data.helpers import Pair
+from PIL import Image
 
 with open('model/model_specifications.json', encoding='utf-8') as load_data:
     config = json.load(load_data)
@@ -24,7 +25,18 @@ def generate_data_for_classifier(image_dir, is_augmented=False, batch_size=128):
     labels = []
 
     # Map paths to images
+    ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+    path = os.path.join(ROOT_DIR, 'data', 'Face_Dataset')
 
+    for persons in os.listdir(path):
+        for img in os.listdir(path +'/'+ persons):
+            try:
+                im = Image.open(path+ '/' + persons + '/' + img)
+                im.verify()
+                images.append(path + '/' + persons + '/' + img)
+                labels.append(persons)
+            except (IOError, SyntaxError) as e:
+                continue
 
     def decode_img(img):
         img = tf.io.read_file(img)
@@ -60,6 +72,18 @@ def generate_data_for_siamese(image_dir, is_augmented=False, batch_size=128):
     labels = []
 
     # Map paths to images
+    ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
+    path = os.path.join(ROOT_DIR, 'data', 'Face_Dataset')
+
+    for persons in os.listdir(path):
+        for img in os.listdir(path +'/'+ persons):
+            try:
+                im = Image.open(path+ '/' + persons + '/' + img)
+                im.verify()
+                images.append(path + '/' + persons + '/' + img)
+                labels.append(persons)
+            except (IOError, SyntaxError) as e:
+                continue
 
 
     def decode_img(img):
