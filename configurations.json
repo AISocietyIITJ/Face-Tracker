@@ -1,5 +1,7 @@
 {
     "DATA_DIR": "data",
     "model_type": "siamese",
-    "IMAGE_DIR": "data/Face_Dataset"
+    "IMAGE_DIR": "data/Face_Dataset",
+    "MODEL_DIR": "model",
+    "BATCH_SIZE": 32
 }
