@@ -16,7 +16,7 @@ mp_face_detection = mp.solutions.face_detection
 sys.path.append("../")
 
 
-DIR = 'data'
+DIR = '../data'
 NAME = str(input("Enter Gesture name: "))
 IMAGE_NUM = int(input("Enter number of images: "))
 NUM = open(f'{DIR}/class_num', encoding="utf-8").read()
