@@ -6,6 +6,7 @@ import json
 import sys
 import random
 import tensorflow as tf
+from PIL import Image
 sys.path.append('../')
 from data.helpers import Pair
 from PIL import Image
@@ -25,6 +26,7 @@ def generate_data_for_classifier(image_dir, is_augmented=False, batch_size=128):
     labels = []
 
     # Map paths to images
+
     ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
     path = os.path.join(ROOT_DIR, 'data', 'Face_Dataset')
 
@@ -72,6 +74,7 @@ def generate_data_for_siamese(image_dir, is_augmented=False, batch_size=128):
     labels = []
 
     # Map paths to images
+
     ROOT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
     path = os.path.join(ROOT_DIR, 'data', 'Face_Dataset')
 
@@ -84,7 +87,6 @@ def generate_data_for_siamese(image_dir, is_augmented=False, batch_size=128):
                 labels.append(persons)
             except (IOError, SyntaxError) as e:
                 continue
-
 
     def decode_img(img):
         img = tf.io.read_file(img)
