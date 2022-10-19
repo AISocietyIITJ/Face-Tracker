@@ -39,7 +39,7 @@ def run_camera():
     encoded[int(NUM)] = NAME
 
     try:
-        os.mkdir(DIR + '/dataset/' + NUM)
+        os.mkdir(DIR + '/Face_Dataset/' + NUM)
         camera = cv2.VideoCapture(0)
 
         num_frames = 1
