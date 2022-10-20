@@ -36,7 +36,7 @@ def generate_data_for_classifier(image_dir, is_augmented=False, batch_size=128):
                 im = Image.open(path+ '/' + persons + '/' + img)
                 im.verify()
                 images.append(path + '/' + persons + '/' + img)
-                labels.append(persons)
+                labels.append(int(persons))
             except (IOError, SyntaxError) as e:
                 continue
 
