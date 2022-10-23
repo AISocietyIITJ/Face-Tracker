@@ -95,22 +95,11 @@ def run_camera():
                         y_1 = int((y_min)*img_h)
                         y_2 = int((y_min + _h)*img_h)
 
-                    #cv2.rectangle(image,(x_1,y_1),(x_2,y_2),(0, 255, 0), 2)
                     # Crop the image
                     roi = image[y_1:y_2, x_1:x_2]
                     try:
                         roi = cv2.resize(roi, (224, 224))
-                        if not EVENT["EVENT"]: ##### 
-                            #I will change it once I have implemented the threading again
-                            #I will change it once I have implemented the threading again
-                            #I will change it once I have implemented the threading again
-                            #I will change it once I have implemented the threading again
-                            #I will change it once I have implemented the threading again
-                            #I will change it once I have implemented the threading again
-                            #I will change it once I have implemented the threading again
-                            #I will change it once I have implemented the threading again
-                            #I will change it once I have implemented the threading again
-                            #I will change it once I have implemented the threading again
+                        if not EVENT["EVENT"]:
 
                             # Saving the image
                             print(num_frames)
@@ -171,22 +160,19 @@ def wait_response():
 
 if __name__ == "__main__":
 
-    run_camera()
-    #wait_response()
-
-    # # Thread for the camera
-    # p1 = Process(target=run_camera)
-    # p1.start()
-    # # Thread for the wait_response
-    # p2 = Process(target=wait_response)
-    # p2.start()
-    # try:
-    #     p1.join()
-    # except SystemExit:
-    #     pass
-    # try:
-    #     p2.join()
-    # except SystemExit:
-    #     pass
+    # Thread for the camera
+    p1 = Process(target=run_camera)
+    p1.start()
+    # Thread for the wait_response
+    p2 = Process(target=wait_response)
+    p2.start()
+    try:
+      p1.join()
+    except SystemExit:
+        pass
+    try:
+        p2.join()
+    except SystemExit:
+        pass
 
 # EOL
