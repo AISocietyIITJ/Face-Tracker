@@ -39,10 +39,10 @@ def run_camera():
     encoded[int(NUM)] = NAME
 
     try:
-        folder=os.path.join(DIR, 'dataset')
+        folder = os.path.join(DIR, 'dataset')
         if not os.path.exists(folder):
             os.mkdir(folder)
-        new_folder=os.path.join(folder, NUM)
+        new_folder = os.path.join(folder, NUM)
         os.mkdir(new_folder)
         camera = cv2.VideoCapture(0)
 
@@ -52,7 +52,7 @@ def run_camera():
         with mp_face_detection.FaceDetection(
             model_selection=0,
             min_detection_confidence=0.5
-            ) as face_detection:
+        ) as face_detection:
             while camera.isOpened():
 
                 global EVENT
@@ -81,11 +81,11 @@ def run_camera():
                 image.flags.writeable = True
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
                 img_h, img_w, _ = image.shape
-                cv2.imshow("video`  feed", cv2.flip(image,1))
+                cv2.imshow("video`  feed", cv2.flip(image, 1))
                 _ = cv2.waitKey(1)
                 if results.detections:
                     for face_keypoints in results.detections:
-                        bounding_box=face_keypoints.location_data.relative_bounding_box
+                        bounding_box = face_keypoints.location_data.relative_bounding_box
                         x_min = min(x_min, bounding_box.xmin)
                         y_min = min(y_min, bounding_box.ymin)
                         _h = max(x_max, bounding_box.height)
@@ -103,9 +103,9 @@ def run_camera():
 
                             # Saving the image
                             print(num_frames)
-                            if num_frames%5 == 0:
-                                cv2.imwrite(filename=f"{DIR}/dataset/{NUM}/image"+
-                                            str(int(num_frames/5))+".jpg",img = roi )
+                            if num_frames % 5 == 0:
+                                cv2.imwrite(filename=f"{DIR}/dataset/{NUM}/image" +
+                                            str(int(num_frames/5))+".jpg", img=roi)
                                 print(f"image_{int(num_frames/5)}.jpg saved")
 
                             # Termination Condition
@@ -134,7 +134,8 @@ def run_camera():
         raise
 
     json.dump(encoded, open(ENCODINGS, 'w', encoding="utf-8"))
-    open(f"{DIR}/class_num", 'w',encoding="utf-8").write(str(int(NUM)+1))
+    open(f"{DIR}/class_num", 'w', encoding="utf-8").write(str(int(NUM)+1))
+
 
 def wait_response():
     """
@@ -155,8 +156,10 @@ def wait_response():
         except KeyboardInterrupt:
             print("\n\n[INFO] exiting...")
             shutil.rmtree(DIR + '/dataset/' + NUM)
-            open(f"{DIR}/class_num", 'w', encoding='utf-8').write(str(int(NUM)))
+            open(f"{DIR}/class_num", 'w',
+                 encoding='utf-8').write(str(int(NUM)))
             sys.exit()
+
 
 if __name__ == "__main__":
 
@@ -167,7 +170,7 @@ if __name__ == "__main__":
     p2 = Process(target=wait_response)
     p2.start()
     try:
-      p1.join()
+        p1.join()
     except SystemExit:
         pass
     try:
