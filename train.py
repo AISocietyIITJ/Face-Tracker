@@ -78,7 +78,7 @@ def main(_args):
             "../history/"+
             str(model_config["model_type"])+
             str(model_config["base_architecture"])+
-            str(model_config["siamese_loss"])+
+            str(model_config["__loss_options__"]["siamese_loss"])+
             str(model_config["optimizer"])+
             "-training.log",
             separator=",",
@@ -93,7 +93,7 @@ def main(_args):
             str(model_config["model_type"])+"-{epoch}-"+str(model_config["base_architecture"])+
             str(model_config["optimizer"])+
             str(model_config["lr"])+
-            str(model_config["siamese_loss"])+"cosine"+
+            str(model_config["__loss_options__"]["siamese_loss"])+"cosine"+
             str(configurations["BATCH_SIZE"])+
             "-"+str("net")+"_{loss:.4f}.h5",
             monitor="loss",

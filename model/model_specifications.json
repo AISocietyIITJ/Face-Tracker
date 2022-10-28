@@ -16,7 +16,7 @@
     "__loss_options__": {
         "classifier":["categorical_crossentropy", "sparse_categorical_crossentropy", "binary_crossentropy", "categorical_hinge", "weighted_binary_crossentropy"],
         "ran_classifier": "same as classifier",
-        "siames":["triplet_batch_hard", "batch_semi_hard", "contrastive"]
+        "siamese_loss":["triplet_batch_hard", "batch_semi_hard", "contrastive"]
     },
     "__optimizer_options__": ["adam", "rmsprop"],
     "__model_type_options__": ["classifier","siamese","ran_classifier", "save"],
