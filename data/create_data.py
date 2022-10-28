@@ -39,7 +39,11 @@ def run_camera():
     encoded[int(NUM)] = NAME
 
     try:
-        os.mkdir(DIR + '/dataset/' + NUM)
+        folder = os.path.join(DIR, 'dataset')
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+        new_folder = os.path.join(folder, NUM)
+        os.mkdir(new_folder)
         camera = cv2.VideoCapture(0)
 
         num_frames = 1
@@ -48,7 +52,7 @@ def run_camera():
         with mp_face_detection.FaceDetection(
             model_selection=0,
             min_detection_confidence=0.5
-            ) as face_detection:
+        ) as face_detection:
             while camera.isOpened():
 
                 global EVENT
@@ -77,31 +81,31 @@ def run_camera():
                 image.flags.writeable = True
                 image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
                 img_h, img_w, _ = image.shape
-                cv2.imshow("video`  feed", cv2.flip(image,1))
+                cv2.imshow("video`  feed", cv2.flip(image, 1))
                 _ = cv2.waitKey(1)
                 if results.detections:
                     for face_keypoints in results.detections:
-                        x_min = min(x_min, face_keypoints.location_data.relative_bounding_box.xmin)
-                        y_min = min(y_min, face_keypoints.location_data.relative_bounding_box.ymin)
-                        _h = max(x_max, face_keypoints.location_data.relative_bounding_box.height)
-                        _w = max(y_max, face_keypoints.location_data.relative_bounding_box.width)
+                        bounding_box = face_keypoints.location_data.relative_bounding_box
+                        x_min = min(x_min, bounding_box.xmin)
+                        y_min = min(y_min, bounding_box.ymin)
+                        _h = max(x_max, bounding_box.height)
+                        _w = max(y_max, bounding_box.width)
                         x_1 = int((x_min)*img_w)
                         x_2 = int((x_min + _w)*img_w)
                         y_1 = int((y_min)*img_h)
-                        y_2 = int((y_max + _h)*img_h)
-
-                    cv2.rectangle(image,(x_1,y_1),(x_2,y_2),(0, 255, 0), 2)
+                        y_2 = int((y_min + _h)*img_h)
 
                     # Crop the image
                     roi = image[y_1:y_2, x_1:x_2]
                     try:
                         roi = cv2.resize(roi, (224, 224))
-                        if EVENT["EVENT"]:
+                        if not EVENT["EVENT"]:
 
                             # Saving the image
-                            if num_frames%5 == 0:
-                                cv2.imwrite(filename=f"{DIR}/dataset/{NUM}/image"+
-                                str(int(num_frames/5))+".jpg",img = roi )
+                            print(num_frames)
+                            if num_frames % 5 == 0:
+                                cv2.imwrite(filename=f"{DIR}/dataset/{NUM}/image" +
+                                            str(int(num_frames/5))+".jpg", img=roi)
                                 print(f"image_{int(num_frames/5)}.jpg saved")
 
                             # Termination Condition
@@ -130,7 +134,8 @@ def run_camera():
         raise
 
     json.dump(encoded, open(ENCODINGS, 'w', encoding="utf-8"))
-    open(f"{DIR}/class_num", 'w',encoding="utf-8").write(str(int(NUM)+1))
+    open(f"{DIR}/class_num", 'w', encoding="utf-8").write(str(int(NUM)+1))
+
 
 def wait_response():
     """
@@ -151,8 +156,10 @@ def wait_response():
         except KeyboardInterrupt:
             print("\n\n[INFO] exiting...")
             shutil.rmtree(DIR + '/dataset/' + NUM)
-            open(f"{DIR}/class_num", 'w', encoding='utf-8').write(str(int(NUM)))
+            open(f"{DIR}/class_num", 'w',
+                 encoding='utf-8').write(str(int(NUM)))
             sys.exit()
+
 
 if __name__ == "__main__":
 
