@@ -1,3 +1,1 @@
 # Face-Tracker
-
-sukriti goyal
